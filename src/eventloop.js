@@ -66,55 +66,55 @@ class Timeout {
 
 
 // Wrapper for an interval (setInterval)
-class Interval {
-
-  // eventQueue - Reference to the event queue
-  // fn        - When timer fires, evaluate this function
-  // interval  - Interval between firing
-  // remove    - Call this to discard timer
-  //
-  // Instance variables add:
-  // handle  - Node.js interval handle
-  // next    - When is this timer firing next
-  constructor(eventQueue, fn, interval, remove) {
-    this.eventQueue     = eventQueue;
-    this.fn             = fn;
-    this.interval       = Math.max(interval || 0, 0);
-    this.remove         = remove;
-    this.fireInProgress = false;
-    this.handle         = global.setInterval(this.fire.bind(this), this.interval);
-    this.next           = Date.now() + this.interval;
-  }
-
-  fire() {
-    // In response to Node firing setInterval, but only allowed to process this
-    // event during a wait()
-    this.next = Date.now() + this.interval;
-
-    // setInterval events not allowed to overlap, don't queue two at once
-    if (this.fireInProgress)
-      return;
-    this.fireInProgress = true;
-    this.eventQueue.enqueue(()=> {
-      this.fireInProgress = false;
-
-      const { eventLoop } = this.eventQueue;
-      eventLoop.emit('setInterval', this.fn, this.interval);
-      try {
-        this.eventQueue.window._evaluate(this.fn);
-      } catch (error) {
-        eventLoop.emit('error', error);
-      }
-    });
-  }
-
-  // clearTimeout
-  stop() {
-    global.clearInterval(this.handle);
-    this.remove();
-  }
-
-}
+// class Interval {
+// 
+//   // eventQueue - Reference to the event queue
+//   // fn        - When timer fires, evaluate this function
+//   // interval  - Interval between firing
+//   // remove    - Call this to discard timer
+//   //
+//   // Instance variables add:
+//   // handle  - Node.js interval handle
+//   // next    - When is this timer firing next
+//   constructor(eventQueue, fn, interval, remove) {
+//     this.eventQueue     = eventQueue;
+//     this.fn             = fn;
+//     this.interval       = Math.max(interval || 0, 0);
+//     this.remove         = remove;
+//     this.fireInProgress = false;
+//     this.handle         = global.setInterval(this.fire.bind(this), this.interval);
+//     this.next           = Date.now() + this.interval;
+//   }
+// 
+//   fire() {
+//     // In response to Node firing setInterval, but only allowed to process this
+//     // event during a wait()
+//     this.next = Date.now() + this.interval;
+// 
+//     // setInterval events not allowed to overlap, don't queue two at once
+//     if (this.fireInProgress)
+//       return;
+//     this.fireInProgress = true;
+//     this.eventQueue.enqueue(()=> {
+//       this.fireInProgress = false;
+// 
+//       const { eventLoop } = this.eventQueue;
+//       eventLoop.emit('setInterval', this.fn, this.interval);
+//       try {
+//         this.eventQueue.window._evaluate(this.fn);
+//       } catch (error) {
+//         eventLoop.emit('error', error);
+//       }
+//     });
+//   }
+// 
+//   // clearTimeout
+//   stop() {
+//     global.clearInterval(this.handle);
+//     this.remove();
+//   }
+// 
+// }
 
 
 // Each window has an event queue that holds all pending events.  Various
